@@ -16,7 +16,7 @@ const client = new MongoClient(uri,
 
 const run = async () => {
   try {
-    const db = client.db("jobbox");
+    const db = client.db("jobBox");
     const userCollection = db.collection("user");
     const jobCollection = db.collection("job");
 
@@ -151,7 +151,7 @@ const run = async () => {
 run().catch((err) => console.log(err));
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello World jobbox!");
 });
 
 app.listen(port, () => {
