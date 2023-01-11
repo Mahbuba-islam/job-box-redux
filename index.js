@@ -28,11 +28,16 @@ const run = async () => {
       res.send(result);
     });
 
-    app.get("/users", async (req, res) => {
-      const cursor = userCollection.find({});
-      const result = await cursor.toArray();
-      res.send({ status: true, data: result });
-    });
+    // app.get("/users", async (req, res) => {
+    //   const cursor = userCollection.find({});
+    //   const result = await cursor.toArray();
+    //   if(result?.email){
+    //     res.send({status:true,data:result})
+    //   }
+     
+    //   res.send({status:false})
+     
+    // });
 
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -42,28 +47,76 @@ const run = async () => {
       if (result?.email) {
         return res.send({ status: true, data: result });
       }
-
+     else{
       res.send({ status: false });
+     }
+      
     });
 
     app.patch("/apply", async (req, res) => {
       const userId = req.body.userId;
       const jobId = req.body.jobId;
       const email = req.body.email;
+      let count = 0
+      const total = count + 1
+      count = total
+      console.log( count)
 
       const filter = { _id: ObjectId(jobId) };
       const updateDoc = {
-        $push: { applicants: { id: ObjectId(userId), email } },
+        $push: { applicants: { id: ObjectId(userId), email } , totalApplicants: count },
+        
       };
 
       const result = await jobCollection.updateOne(filter, updateDoc);
-
+      
       if (result.acknowledged) {
+         
         return res.send({ status: true, data: result });
       }
 
       res.send({ status: false });
     });
+
+
+
+    app.patch("/close", async (req, res) => {
+       const jobId = req.body.jobId;
+      const filter = { _id: ObjectId(jobId) };
+      const updateDoc = {
+        $set: { status: "closed", }
+        
+      };
+
+      const result = await jobCollection.updateOne(filter, updateDoc);
+      
+      if (result.acknowledged) {
+         
+        return res.send({ status: true, data: result });
+      }
+
+      res.send({ status: false });
+    });
+
+           // open
+    app.patch("/open", async (req, res) => {
+       const jobId = req.body.jobId;
+      const filter = { _id: ObjectId(jobId) };
+      const updateDoc = {
+        $set: { status: "open", }
+        
+      };
+
+      const result = await jobCollection.updateOne(filter, updateDoc);
+      
+      if (result.acknowledged) {
+         
+        return res.send({ status: true, data: result });
+      }
+
+      res.send({ status: false });
+    });
+
 
     app.patch("/query", async (req, res) => {
       const userId = req.body.userId;
@@ -99,12 +152,14 @@ const run = async () => {
       console.log(userId);
 
       const filter = { "queries.id": ObjectId(userId) };
-
+     console.log("filter:",filter)
       const updateDoc = {
         $push: {
           "queries.$[user].reply": reply,
         },
+       
       };
+      console.log("updateDoc:",updateDoc)
       const arrayFilter = {
         arrayFilters: [{ "user.id": ObjectId(userId) }],
       };
@@ -114,12 +169,15 @@ const run = async () => {
         updateDoc,
         arrayFilter
       );
-      if (result.acknowledged) {
+      if (result?.acknowledged) {
         return res.send({ status: true, data: result });
       }
+      console.log("result:", result)
 
       res.send({ status: false });
     });
+
+       
 
     app.get("/applied-jobs/:email", async (req, res) => {
       const email = req.params.email;
