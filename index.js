@@ -52,11 +52,15 @@ const run = async () => {
      }
       
     });
-
+          // apply
     app.patch("/apply", async (req, res) => {
       const userId = req.body.userId;
       const jobId = req.body.jobId;
-      const email = req.body.email;
+      const fristName = req.body.fristName;
+     const applicantDetails = req.body.applicantDetails;
+     const email = req.body.email;
+      // const email = req.body.email;
+      // const email = req.body.email;
       let count = 0
       const total = count + 1
       count = total
@@ -64,7 +68,7 @@ const run = async () => {
 
       const filter = { _id: ObjectId(jobId) };
       const updateDoc = {
-        $push: { applicants: { id: ObjectId(userId), email } , totalApplicants: count },
+        $push: { applicants: { id: ObjectId(userId), email, fristName, applicantDetails } , totalApplicants: count },
         
       };
 
@@ -198,6 +202,26 @@ const run = async () => {
       const id = req.params.id;
 
       const result = await jobCollection.findOne({ _id: ObjectId(id) });
+      res.send({ status: true, data: result });
+    });
+   
+
+    //  // get all applicant
+    //  app.get("/applicant", async (req, res) => {
+    //   const cursor = jobCollection.find({});
+    //   const result = await cursor.toArray();
+    //   res.send({ status: true, data: result });
+    // });
+
+
+
+    //      // applicant details
+    app.get("/applicant/:id", async (req, res) => {
+      const id = req.params.id;
+
+      
+      
+      const result = await userCollection.findOne({ _id: ObjectId(id) });
       res.send({ status: true, data: result });
     });
 
