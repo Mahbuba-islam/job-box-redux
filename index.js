@@ -19,6 +19,7 @@ const run = async () => {
     const db = client.db("jobBox");
     const userCollection = db.collection("user");
     const jobCollection = db.collection("job");
+    const chatRoomCollection = db.collection("chatRoom");
 
     app.post("/user", async (req, res) => {
       const user = req.body;
@@ -198,33 +199,181 @@ const run = async () => {
       res.send({ status: true, data: result });
     });
 
+    app.get("/users", async (req, res) => {
+      const cursor = userCollection.find({});
+      const result = await cursor.toArray();
+      res.send({ status: true, data: result });
+    });
+
     app.get("/job/:id", async (req, res) => {
       const id = req.params.id;
 
       const result = await jobCollection.findOne({ _id: ObjectId(id) });
       res.send({ status: true, data: result });
     });
+
+          // get profile details
+    app.get("/profile/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const result = await userCollection.findOne({ _id: ObjectId(id) });
+      res.send({ status: true, data: result });
+    });
    
+        //send message
 
-    //  // get all applicant
-    //  app.get("/applicant", async (req, res) => {
-    //   const cursor = jobCollection.find({});
-    //   const result = await cursor.toArray();
-    //   res.send({ status: true, data: result });
-    // });
+      
+
+            // message
+    //   app.post("/chatRoom", async (req, res) => {
+    //      const chatRoom = req.body;
+    //     // console.log(messages)
+    //   //   const senderId = req.body.senderId
+    //   //   console.log(senderId)
+    //   //  const message = req.body.message;
+    //   //  console.log(message)
+        
+    //   // const receiverId = req.body.receiverId
+    //   // console.log(receiverId)
+    //  const result =  await chatRoomCollection.insertOne(chatRoom)
+    //    res.send(result);
+    //    });
+
+             // get chatRoom
+      //  app.get("/chatRoom", async (req, res) => {
+      //   const cursor = chatRoomCollection.find({});
+      //   const result = await cursor.toArray();
+      //   res.send({ status: true, data: result });
+      // });
 
 
+  
+       app.patch("/messages", async (req, res) => {
+        const messages = req.body.messages;
+        const senderId = req.body.senderId
+        const receiverId = req.body.receiverId
+        const email = req.body.email
+       const filter = { _id: ObjectId(receiverId)};
+        const updateDoc = {
+          $push: {
+           message: {
+              id: ObjectId(senderId),
+             messages: messages,
+             email: email,
+             text:[],
+              reply: [],
+            },
+          },
+        };
+  
+        const result = await userCollection.updateOne(filter, updateDoc);
+  
+        if (result?.acknowledged) {
+          return res.send({ status: true, data: result });
+        }
+  
+        res.send({ status: false });
+      });
+
+
+
+  
+     // message reply
+     app.patch("/replyMessage", async (req, res) => {
+       const userId = req.body.userId
+      const reply = req.body.reply;
+      // console.log(reply);
+      // console.log("employ:",employId);
+      // console.log("user:", req.body.userId);
+
+      const filter = { "message.id": ObjectId(userId) };
+     console.log("filter:",filter)
+      const updateDoc = {
+        $push: {
+          "message.$[user].reply": reply,
+        },
+       
+      };
+      console.log("updateDoc:",updateDoc)
+      const arrayFilter = {
+        arrayFilters: [{ "user.id": ObjectId(userId) }],
+      };
+
+      const result = await jobCollection.updateOne(
+        filter,
+        updateDoc,
+        arrayFilter
+      );
+      if (result?.acknowledged) {
+        return res.send({ status: true, data: result });
+      }
+      console.log("result:", result)
+
+      res.send({ status: false });
+    });
+
+  
 
     //      // applicant details
     app.get("/applicant/:id", async (req, res) => {
       const id = req.params.id;
-
-      
-      
       const result = await userCollection.findOne({ _id: ObjectId(id) });
       res.send({ status: true, data: result });
     });
 
+      
+        //chatRoom details
+    app.get("/conversation/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const result = await userCollection.findOne({ _id: ObjectId(id) });
+      res.send({ status: true, data: result });
+    });
+
+     
+ app.patch("/messageFind", async (req, res) => {
+       const email = req.body.email
+       const id = req.body.id
+       console.log("messageId",id)
+       userId = req.body.userId
+       console.log(userId)
+      const messages = req.body.messages;
+      const text = req.body.text;
+      console.log("message",messages);
+     
+
+      const filter = { "message.id": ObjectId(id) };
+      const updateDoc = {
+        $push: {
+          "message.$[user].text": text, id 
+
+        },
+       
+      };
+      
+      const arrayFilter = {
+        arrayFilters: [{ "user.id": ObjectId(userId) }],
+      };
+
+      const result = await userCollection.updateOne(
+        filter,
+        updateDoc,
+        arrayFilter
+      );
+      if (result?.acknowledged) {
+        return res.send({ status: true, data: result });
+      }
+      
+
+      res.send({ status: false });
+    });
+
+  
+
+
+
+
+            // job create
     app.post("/job", async (req, res) => {
       const job = req.body;
 
